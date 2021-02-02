@@ -1,0 +1,1205 @@
+openapi: 3.0.0
+info:
+  title: RF-R3x0 REST RFID Hardware Interface
+  version: 1.0.0
+  description: This is a REST based interface to interact with the RF-R3x0 RFID Hardware Interface via http using JSON.<br>
+    It is designed as a low level reader interface in accordance with LLRP 1.1 (Low Level Reader Protocol) by GS1.
+  contact: 
+    email: support@peraMIC.io
+servers:
+  - url: https://{mica-host}/Apps/rest/rf
+    description: MICA
+    variables:
+      mica-host:
+        default: mica-host
+        description: This value depends on the MICA on which the app is installed
+security:
+  - basic_auth: []
+components:
+  securitySchemes:
+    basic_auth:
+      type: http
+      scheme: basic
+  schemas:
+  #capabilities
+    AllCapabilities:
+      type: object
+      description: Represents all capabilities provided by the reader
+      properties:
+        device:
+          $ref: "#/components/schemas/DeviceCapabilities"
+        regulatory:
+          $ref: "#/components/schemas/RegulatoryCapabilities"
+        antennaProperties:
+          type: array
+          description: The list of antenna specific capabilities
+          items:
+            $ref: "#/components/schemas/AntennaProperties"
+    DeviceCapabilities:
+      type: object
+      description: Represents the device specific capabilities of the reader
+      properties:
+        manufacturer:
+            type: integer
+            format: int32
+            description: The manufacturer name of the reader as IANA private enterprise number (PEN)
+        model:
+            type: integer
+            format: int32
+            description: The model name of the reader as unsigned integer
+        firmware:
+          type: string
+          description: The hardware firmware version of the reader as UTF-8 string
+        numberOfAntennas:
+          type: integer
+          format: int16
+          description: The maximum number of antennas provided by the reader
+        maxReceiveSensitivity:
+          type: integer
+          format: int16
+          description: The maximum receive sensitity supported by the reader in dBm
+        receiveSensitivityTable:
+          $ref: "#/components/schemas/ReceiveSensitivityTable"
+        antennaReceiveSensitivityRangeTable:
+          $ref: "#/components/schemas/AntennaReceiveSensitivityRangeTable"
+    ReceiveSensitivityTable:
+      type: object
+      description: Represents the list of receive sensitivity values supported by the reader
+      properties:
+        entryList:
+          type: array
+          description: The list of receive sensitivity values
+          items:
+            $ref: "#/components/schemas/ReceiveSensitivityTableEntry"
+    ReceiveSensitivityTableEntry:
+      type: object
+      description: Represents a receive sensitvity value supported by the reader
+      properties:
+        index:
+          type: integer
+          format: int16
+          description: The index of this entry
+        receiveSensitivity:
+          type: integer
+          format: int16
+          description: The receive sensitivity value in db relative to the maximum receive sensitivity
+    AntennaReceiveSensitivityRangeTable:
+      type: object
+      description: Represents the valid receive sensitivity range per antenna as indexes into the ReceiveSensitivityTable
+      properties:
+        entryList:
+          type: array
+          description: The list of receive senistivity range per antenna
+          items:
+            $ref: "#/components/schemas/AntennaReceiveSensitivityRangeTableEntry"
+    AntennaReceiveSensitivityRangeTableEntry:
+      type: object
+      description: Represents the receive sensitivity range for a specific antenna
+      properties:
+        index:
+          type: integer
+          format: int16
+          description: The ID of the represented antenna
+        min:
+          type: integer
+          format: int16
+          description: The minimum receive sensitivity as index into the ReceiveSensitivityTable for this antenna
+        max:
+          type: integer
+          format: int16
+          description: The maximum receive sensitivity as index into the ReceiveSensitivityTable for this antenna
+    RegulatoryCapabilities:
+      type: object
+      description: Represents the RF regulation specific capabilities. This include regulatory standard, frequency band information, power levels supporzted, frquencies supported and any air protocol specific values.
+      properties:
+        countryCode:
+          type: integer
+          format: int16
+          description: The numeric code of the country as specified in ISO 3166, while value 0 means unspecified.
+        communicationStandard:
+          type: integer
+          format: int16
+          description: The communication standard as specified by LLRP specification 1.1 chapter 10.2.4
+        transmitPowerTable:
+          $ref: "#/components/schemas/TransmitPowerTable"
+        hopping:
+          type: boolean
+          description: True if frequency hopping is mandatory for the current communication standard, false otherwise.
+        freqHopTable:
+          $ref: "#/components/schemas/FreqHopTable"
+        fixedFreqTable:
+          $ref: "#/components/schemas/FixedFreqTable"
+    TransmitPowerTable:
+      type: object
+      description: Represents the list of transmit power in dBm*100 supported by the reader
+      properties:
+        entryList:
+          type: array
+          description: The list of transmit power
+          items:
+            $ref: "#/components/schemas/TransmitPowerTableEntry"
+    TransmitPowerTableEntry:
+      type: object
+      description: Represents one transmit power in dBm*100 supported by the reader
+      properties:
+        index:
+          type: integer
+          format: int16
+          description: The index of this entry
+        transmitPower:
+          type: integer
+          format: int16
+          description: The transmit power value
+    FreqHopTable:
+      type: object
+      description: Represents a list frequency hop tables for the current communication standard supported by the reader
+      properties:
+        entryList:
+          type: array
+          description: The list of frequency jop tables
+          items:
+            $ref: "#/components/schemas/FreqHopTableEntry"
+    FreqHopTableEntry:
+      type: object
+      description: Represent a frequency hop table for the current communication standard sipported by the reader
+      properties:
+        index:
+          type: integer
+          format: int16
+          description: The index of this entry
+        freqList:
+          type: array
+          description: List of frequencies in kHz in hop table order.
+          items:
+            type: integer
+            format: int32
+    FixedFreqTable:
+      type: object
+      description: Represents the fixed frequency list used by the reader, The on-based position of a frequency in the list is defined as its ChannelIndex
+      properties:
+        freqList:
+          type: array
+          description: List of frequenceies in kHz
+          items:
+            type: integer
+            format: int32
+    AntennaProperties:
+      type: object
+      description: Represents a single antenna's properties.
+      properties:
+        id:
+          type: integer
+          format: int16
+          description: The antenna ID
+        gain:
+          type: integer
+          format: int16
+          description: >-
+            Not supported by RF-R3x0.
+            The gain of the antenna in dBI*100
+        connected:
+          type: boolean
+          description: True if antenna port is connected or activated via AntennaConfiguration, false otherwise
+    
+    #configuration 
+    DeviceConfiguration:
+      type: object
+      description: Represents the complete configuration of the reader
+      properties:
+        region:
+          type: string
+          description: The configured region of the reader. The list of valid regions can be requested at path /region/supported
+        keepalive:
+          $ref: "#/components/schemas/KeepAliveConfiguration"
+        antennas:
+          type: array
+          description: The list of antenna specific configurations
+          items:
+            $ref: "#/components/schemas/AntennaConfiguration"
+        inventory:
+          $ref: "#/components/schemas/InventorySettings"      
+    KeepAliveConfiguration:
+      type: object
+      description: Represents the keepalive configuration of the nativ rfid hardware service. If keepalive is activated the nativ rfid hardware service will send keepalive messages to the rest interface backend
+        implementation
+      properties:
+        enable:
+          type: boolean
+          description: True if keepalive is activated, false otherwise.
+        interval:
+          type: integer
+          format: int32
+          description: The time interval of keepalive messages in milliseconds
+    AntennaConfiguration:
+      type: object
+      description: Represents the configuration of a specific antenna
+      properties:
+        id:
+          type: integer
+          format: int16
+          description: The id of the antenna port. The value 0 represents all antennas.
+        receiveSensitivity:
+          type: integer
+          format: int16
+          description: The receive sensitivity of the antenna port, the value is the index into the AntennaReceiveSensitivityRangeTable
+        transmitPower:
+          type: integer
+          format: int16
+          description: The transmit power for the antenna, the value is the index into the TransmitPowerTable
+        hopTableID:
+          type: integer
+          format: int16
+          description: The frequency hop table of the antenna port, the value is the index into the FreqHopTable.
+            This field is ignored in non-frequency-hopping regulatory regions.
+        channelIndex:
+          type: integer
+          format: int16
+          description: The channel to use during transmission, the value is the index into the FixedFreqTable.
+            This field is ignored in frequency-hopping regulatory regions.
+        connect:
+          $ref: "#/components/schemas/ConnectType"
+    ConnectType:
+      type: string
+      description: The connect type for the antenna. TRUE if the antenna is active, FALSE if the antenna is inactive and AUTO if the hardware should detect whether an antenna is connected or not
+      enum:
+      - "TRUE"
+      - "FALSE"
+      - "AUTO"
+    InventorySettings:
+      type: object
+      description: Represents the inventory-specific settings to be used during a particular rfid inventory operation. This comprises filter and singulation parameter.
+      properties:
+        selectionMasks:
+          type: array
+          description: The list of filter parameter
+          items:
+            $ref: "#/components/schemas/SelectionMask"
+        singulationControl:
+          $ref: "#/components/schemas/SingulationControl"
+        rssiFilter:
+          $ref: "#/components/schemas/RssiFilter"
+        tagSmoothing:
+          $ref: "#/components/schemas/TagSmoothingSettings"
+    SelectionMask:
+      type: object
+      description: Represents a specific rfid filter operation, in particular the parameters for the select command. It defines the information for the tag memory data pattern used for the select operation.
+      properties:
+        bank:
+          type: integer
+          format: int16
+          minimum: 1
+          maximum: 3
+          description: The memory bank the filter applies on. The mask used for select command applies only to EPC, TID and User memory, and not Reserved memory MB 0
+        bitOffset:
+          type: integer
+          format: int16
+          description: The first bit location of the specified memory bank against which to compare the mask
+        bitLength:
+          type: integer
+          format: int16
+          description: The bit length of the mask
+        mask:
+          type: string
+          description: The pattern against which to compare in hex format
+    SingulationControl:
+      type: object
+      description: Represents controls particular to the singulation process in the air protocol
+      properties:
+        session:
+          type: integer
+          format: int16
+          minimum: 0
+          maximum: 3
+          description: The session number used for the inventory operation
+        qValue:
+          type: integer
+          format: int16
+          minimum: 0
+          maximum: 15
+          description: The Q value used for the inventory operation, the value 0 represents the default value
+        transitTime:
+          type: integer
+          format: int16
+          description: The estimated transit time of an tag  in milliseconds
+        rounds:
+          type: integer
+          format: int16
+          minimum: 0
+          maximum: 10
+          description: The number of inventory rounds for one onventory operation
+    RssiFilter:
+      type: object
+      description: Represents a rssi range to apply as a filter after the singulation, so only tags with a certain   signal strength are reported by the rfid hardware.
+      properties: 
+        minRssi:
+          type: integer
+          format: int16
+          minimum: -64
+          maximum: 0
+          description: The minimum signal strength received
+        maxRssi:
+          type: integer
+          format: int16
+          minimum: -64
+          maximum: 0
+          description: The maximum signal strength received
+    TagSmoothingSettings:
+      type: object
+      description: Represents the tag smoothing settings. Tag smoothing is a mechanism whereby a reader can be configured to reduce the appearance of tags mocing in and out of a reader's field of view due ti intermittent tag reads. Smoothing is analogous to circuit-switch debouncing logic. The logical for smoothing and the parameters are defined in the ALE 1.1.1 core specification chapter 10.6
+      properties:
+        enabled:
+          type: boolean
+          description: True if tag smoothing is activated, false otherwise
+        glimpsedTimeout:
+          type: integer
+          format: int32
+          description: A threshold, in milliseconds, that governs the transition between the Glimpsed state and the Unkown state.
+        observedCountThreshold:
+          type: integer
+          format: int32
+          description: A threshold that governs the transition between the Glimpsed and the Observed state.
+        observedTimeThreshold:
+          type: integer
+          format: int32
+          description: A threshold, in milliseconds, that governs the transition between the Glimpsed and the Observed state.
+        lostTimeout:
+          type: integer
+          format: int32
+          description: A threshold, in milliseconds, taht governs the transition between the Observed and the Unkown state.
+    
+    #operations
+    TagData:
+      type: object
+      description: Represents represents an rfid tag
+      properties:
+        tagDataId:
+          type: integer
+          format: int32
+          description: An autogenerated id of the rfid tag, only unique for one inventory
+        epc:
+          type: string
+          description: The epc of the rfid tag as a hex string
+        pc:
+          type: integer
+          format: int16
+          description: The protocol control of the rfid tag as numeric value
+        crc:
+          type: integer
+          format: int16
+          description: The CRC of the rfid tag as numeric value
+        xpc:
+          type: integer
+          format: int32
+          description: The extended protocol control as numveric value 
+        antennaID:
+          type: integer
+          format: int16
+          description: The ID of the antenna where the rfid tag was captured
+        rssi:
+          type: integer
+          format: int32
+          description: The RSSI value of the rfid tag when it was captured
+        channel:
+          type: integer
+          format: int16
+          description: The frequency used during the inventory, the value is a index into the FixedFreqTable
+        resultList:
+          type: array
+          description: List of operations results for the rfid tag. If no operations where performed on the tag, this list is empty.
+          items:
+            oneOf:
+              - $ref: '#/components/schemas/ReadResult'
+              - $ref: '#/components/schemas/WriteResult'
+              - $ref: '#/components/schemas/KillResult'
+              - $ref: '#/components/schemas/LockResult'
+              - $ref: '#/components/schemas/CustomResult'
+    OperationResult:
+      type: object
+      description: Represents the generic result of an operation 
+      properties:
+        operationId:
+          type: string
+          description: The ID of the corresponding operation
+        kind:
+          type: string
+          description: The kind of the corresponding operation and therefor also the kind of the result
+          enum:
+            - READ
+            - WRITE
+            - KILL
+            - LOCK
+            - CUSTOM
+      discriminator: 
+        propertyName: kind
+        mapping:
+          READ: '#/components/schemas/ReadResult'
+          WRITE: '#/components/schemas/WriteResult'
+          KILL: '#/components/schemas/KillResult'
+          LOCK: '#/components/schemas/LockResult'
+          CUSTOM: '#/components/schemas/CustomResult'
+          
+    ReadResult:
+      type: object
+      description: Represents the result of a ReadOperatioon
+      allOf:
+        - $ref: '#/components/schemas/OperationResult'
+      properties:
+        readData: 
+          type: string
+          description: The information read from the rfid tag
+        result:
+          type: string
+          description: The result of the read operation
+          enum:
+            - SUCCESS
+            - NON_SPECIFIC_TAG_ERROR
+            - NO_RESPONSE_FROM_TAG
+            - NON_SPECIFIC_READER_ERROR
+            - MEMORY_OVERRUN_ERROR
+            - MEMORY_LOCKED_ERROR
+            - INCORRECT_PASSWORD_ERROR
+    WriteResult:
+      type: object
+      description: Represents the result of a WriteOperatioon
+      allOf:
+        - $ref: '#/components/schemas/OperationResult'
+      properties:
+        wordsWritten: 
+          type: integer
+          format: int16
+          description: The number of words written into the rfid tag
+        result:
+          type: string
+          description: The result of the write opeartion
+          enum:
+            - SUCCESS
+            - MEMORY_OVERRUN_ERROR
+            - MEMORY_LOCKED_ERROR
+            - INSUFFICIENT_POWER
+            - NON_SPECIFIC_TAG_ERROR
+            - NO_RESPONSE_FROM_TAG
+            - NON_SPECIFIC_READER_ERROR
+            - INCORRECT_PASSWORD_ERROR    
+    KillResult:
+      type: object
+      description: Represents the result of a KillOperatioon
+      allOf:
+        - $ref: '#/components/schemas/OperationResult'
+      properties:
+        result:
+          type: string
+          description: The result of the kill operation
+          enum:
+            - SUCCESS
+            - ZERO_KILL_PASSWORD_ERROR
+            - INSUFFICIENT_POWER
+            - NON_SPECIFIC_TAG_ERROR
+            - NO_RESPONSE_FROM_TAG
+            - NON_SPECIFIC_READER_ERROR
+            - INCORRECT_PASSWORD_ERROR    
+    LockResult:
+      type: object
+      description: Represents the result of a LockOperatioon
+      allOf:
+        - $ref: '#/components/schemas/OperationResult'
+      properties:
+        result:
+          type: string
+          description: The result of the lock opeartion
+          enum:
+            - SUCCESS
+            - MEMORY_OVERRUN_ERROR
+            - MEMORY_LOCKED_ERROR
+            - INSUFFICIENT_POWER
+            - NON_SPECIFIC_TAG_ERROR
+            - NO_RESPONSE_FROM_TAG
+            - NON_SPECIFIC_READER_ERROR
+            - INCORRECT_PASSWORD_ERROR   
+    CustomResult:
+      type: object
+      description: Represents the result of a CustomOperatioon
+      allOf:
+        - $ref: '#/components/schemas/OperationResult'
+      properties:
+        resultData: 
+          type: string
+          description: The information requested from the rfid tag
+        result:
+          type: string
+          description: The result of the custom operation
+          enum:
+            - SUCCESS
+            - NON_SPECIFIC_TAG_ERROR
+            - NO_RESPONSE_FROM_TAG
+            - NON_SPECIFIC_READER_ERROR
+            - INSUFFICIENT_POWER
+            - MEMORY_OVERRUN_ERROR
+            - MEMORY_LOCKED_ERROR
+            - INCORRECT_PASSWORD_ERROR
+            - OP_NOT_POSSIBLE_ERROR
+
+    TagOperation:
+      type: object
+      description: Represents a generic operation to by applied on a rfid tag 
+      required:
+        - operationId
+        - kind
+      properties: 
+        operationId:
+          type: string
+          description: The unique id of this operation within one execution
+        kind:
+          type: string
+          description: The kind of the operation
+          enum:
+            - READ
+            - WRITE
+            - KILL
+            - LOCK
+            - CUSTOM
+      discriminator: 
+        propertyName: kind
+        mapping:
+          READ: '#/components/schemas/ReadOperation'
+          WRITE: '#/components/schemas/WriteOperation'
+          KILL: '#/components/schemas/KillOperation'
+          LOCK: '#/components/schemas/LockOperation'
+          CUSTOM: '#/components/schemas/CustomOperation'
+    ReadOperation:
+      type: object
+      description: Represents a rfid read operatioon
+      allOf:
+        - $ref: '#/components/schemas/TagOperation'
+      required:
+        - bank
+        - offset
+        - length
+      properties:
+        bank: 
+          type: integer
+          format: int16
+          description: The memory bank to read information from
+        offset:
+          type: integer
+          format: int16
+          description: The first 16-bit word location within the specified memory bank to read information from
+        length:
+          type: integer
+          format: int16
+          description: The amount of 16-bit words to read from the specified memory bank
+        password:
+          type: integer
+          format: int32
+          description: The password to use for the operation as numeric value
+    WriteOperation:
+      type: object
+      description: Represents a rfid write operation
+      allOf:
+        - $ref: '#/components/schemas/TagOperation'
+      required:
+        - bank
+        - offset
+        - data
+      properties:
+        bank: 
+          type: integer
+          format: int16
+          description: The memory bank to write information to
+        offset:
+          type: integer
+          format: int16
+          description: The first 16-bit word location within the specified memory bank to write information to
+        data:
+          type: string
+          description: The data to write into the specified memory bank as hex string. Th enumber of chars must be a multiple of 4.
+        password:
+          type: integer
+          format: int32
+          description: The password to use for the operation as numeric value
+    KillOperation:
+      type: object
+      description: Represents a rfid kill operation
+      allOf:
+        - $ref: '#/components/schemas/TagOperation'
+      required:
+        - killPassword
+      properties:
+        killPassword:
+          type: integer
+          format: int32
+          description: The password to use for the operation as numeric value
+    LockOperation:
+      type: object
+      description: Represents a rfid lock operation
+      allOf:
+        - $ref: '#/components/schemas/TagOperation'
+      required:
+        - privilege
+        - field
+      properties:
+        privilege: 
+          type: string
+          description: The access privilege to be applied to the specified field
+          enum:
+            - LOCK
+            - PERMALOCK
+            - PERMAUNLOCK
+            - UNLOCK
+        field:
+          type: string
+          description: The field to which access privilege will be applied
+          enum:
+            - KILL_PASSWORD
+            - ACCESS_PASSWORD
+            - EPC_MEMORY
+            - TID_MEMORY
+            - USER_MEMORY
+        password:
+          type: integer
+          format: int32
+          description: The password to use for the operation as numeric value  
+    CustomOperation:
+      type: object
+      description: Represents a rfid custom operatioon
+      allOf:
+        - $ref: '#/components/schemas/TagOperation'
+      required:
+        - length
+        - data
+      properties:
+        length:
+          type: integer
+          format: int16
+          description: The amount of bits the custom operation consist of
+        data:
+          type: string
+          description: The custom command as hex string
+        password:
+          type: integer
+          format: int32
+          description: The password to use for the operation as numeric value     
+    
+  parameters:
+    antenna:
+      name: antenna
+      in: query
+      description: The ID of an specific antenna
+      schema:
+        type: number
+      required: false
+    antennaID:
+      name: antennaID
+      in: path
+      description: The ID of an specific antenna
+      schema:
+        type: number
+      required: true
+    tagID:
+      name: tagID
+      in: path
+      description: The ID of an specific rfid tag
+      schema:
+        type: string
+      required: true
+
+tags:
+  - name: capabilities
+  - name: configuration
+  - name: operations
+
+paths:
+  /capabilities:
+    get:
+      tags: 
+        - capabilities
+      summary: Gets all capabilities in one document
+      operationId: getCapabilities
+      responses:
+        '200':
+          description: List of relative paths to request certain capability categories
+          content:
+            'application/json':
+              schema:
+                $ref: "#/components/schemas/AllCapabilities"
+  /capabilities/device:
+    get:
+      tags: 
+        - capabilities
+      summary: Gets the device capabilities
+      operationId: getDeviceCapabilities
+      responses:
+        '200':
+          description: Device capabilities
+          content:
+            'application/json':
+              schema:
+                $ref: "#/components/schemas/DeviceCapabilities"
+        '500':
+          description: Unexpected error occured
+  /capabilities/regulatory:
+    get:
+      tags: 
+        - capabilities
+      summary: Gets the regulatory capabilities
+      operationId: getRegulatoryCapabilities
+      responses:
+        '200':
+          description: List of regulatory capabilities
+          content:
+            'application/json':
+              schema:
+                $ref: "#/components/schemas/RegulatoryCapabilities"
+        '500':
+          description: Unexpected error occured
+  /capabilities/antennaProperties:
+    get:
+      tags: 
+        - capabilities
+      summary: Gets the antenna properties for all antennas
+      operationId: getAntennaPropertiesList
+      responses:
+        '200':
+          description: List of antenna properties
+          content:
+            'application/json':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AntennaProperties"
+        '500':
+          description: Unexpected error occured
+  /capabilities/antennaProperties/{antennaID}:
+    get:
+      tags: 
+        - capabilities
+      summary: Gets the antenna properties of the specified antenna
+      operationId: getAntennaProperties
+      parameters: 
+        - $ref: '#/components/parameters/antennaID'
+      responses:
+        '200':
+          description: Antenna properties
+          content:
+            'application/json':
+              schema:
+                $ref: "#/components/schemas/AntennaProperties" 
+        '500':
+          description: Unexpected error occured
+  /configuration:
+    get:
+      tags: 
+        - configuration
+      summary: Gets the complete configuration of the reader in one document
+      operationId: getConfiguration
+      responses:
+        '200':
+          description: Complete device configuration
+          content:
+            'application/octet-stream':
+              schema:
+                $ref: "#/components/schemas/DeviceConfiguration"
+        '500':
+          description: Unexpected error occured
+    post:
+      tags: 
+        - configuration
+      summary: Sets the comple configuration at once
+      operationId: setConfiguration
+      requestBody:
+        content:
+          'application/octet-stream':
+            schema:
+              type: string
+              format: binary
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Invalid configuration
+        '500':
+          description: Unexpected error occured
+  /configuration/keepalive:
+    get:
+      tags: 
+        - configuration
+      summary: Gets the keep alive settings of the reader
+      operationId: getKeepAliveConfiguration
+      responses:
+        '200':
+          description: Keepalive configuration
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/KeepAliveConfiguration'
+        '500':
+          description: Unexpected error occured
+    put:
+      tags: 
+        - configuration
+      summary: Sets the keep alive settings of the reader
+      operationId: setKeepAliveConfiguration
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/KeepAliveConfiguration'
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Invalid keepalive configuration
+        '500':
+          description: Unexpected error occured
+  /configuration/antennas:
+    get:
+      tags: 
+        - configuration
+      summary: Gets the antenna configurations for all antennas
+      operationId: getAntennaConfigurationList
+      responses:
+        '200':
+          description: List of antenna configurations
+          content:
+            'application/json':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AntennaConfiguration"
+        '500':
+          description: Unexpected error occured
+  /configuration/antennas/{antennaID}:
+    get:
+      tags: 
+        - configuration
+      summary: Gets the antenna configuration of the specified antenna
+      operationId: getAntennaConfiguration
+      parameters: 
+        - $ref: '#/components/parameters/antennaID'
+      responses:
+        '200':
+          description: Antenna configurations
+          content:
+            'application/json':
+              schema:
+                $ref: "#/components/schemas/AntennaConfiguration"
+        '400':
+          description: Invalid antenna configuration
+        '500':
+          description: Unexpected error occured
+    put:
+      tags: 
+        - configuration
+      summary: Sets the antenna configuration of the specified antenna
+      operationId: setAntennaConfiguration
+      parameters: 
+        - $ref: '#/components/parameters/antennaID'
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/AntennaConfiguration'
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Unexpected error occured
+  /configuration/inventory:
+    get:
+      tags: 
+        - configuration
+      summary: Gets the complete inventory settings of the reader
+      operationId: getInventorySettings
+      responses:
+        '200':
+          description: Inventory settings
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/InventorySettings'
+        '500':
+          description: Unexpected error occured
+  /configuration/inventory/selectionMasks:
+    get:
+      tags: 
+        - configuration
+      summary: Gets the selection mask list of the reader
+      operationId: getSelectionMasks
+      responses:
+        '200':
+          description: List of selection masks
+          content:
+            'application/json':
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SelectionMask'
+        '500':
+          description: Unexpected error occured
+    put:
+      tags: 
+        - configuration
+      summary: Sets the selection mask list of the reader
+      operationId: setSelectionMasks
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/SelectionMask'
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Invalid selection mask
+        '500':
+          description: Unexpected error occured
+  /configuration/inventory/rssiFilter:
+    get:
+      tags: 
+        - configuration
+      summary: Gets the RSSI filter of the reader
+      operationId: getRssiFilter
+      responses:
+        '200':
+          description: Return object
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/RssiFilter'
+        '500':
+          description: Unexpected error occured
+    put:
+      tags: 
+        - configuration
+      summary: Sets the RSSI filter of the reader
+      operationId: setRssiFilter
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/RssiFilter'
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Invalid rssi value or maxRssi smaller then minRssi
+        '500':
+          description: Unexpected error occured
+  /configuration/inventory/singulationControl:
+    get:
+      tags: 
+        - configuration
+      summary: Gets the singulation control settings of th reader
+      operationId: getSingulationControl
+      responses:
+        '200':
+          description: The singulation control
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/SingulationControl'
+        '500':
+          description: Unexpected error occured
+    put:
+      tags: 
+        - configuration
+      summary: Sets the singulation control settings of the reader
+      operationId: setSingulationControl
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/SingulationControl'
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Invalud singulation control
+        '500':
+          description: Unexpected error occured
+  /configuration/inventory/tagSmoothing:
+    get:
+      tags: 
+        - configuration
+      summary: Gets the tag smoothing settings of the reader
+      operationId: getTagSmoothingSettings
+      responses:
+        '200':
+          description: Return object
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/TagSmoothingSettings'
+        '500':
+          description: Unexpected error occured
+    put:
+      tags: 
+        - configuration
+      summary: Sets the tag smoothing settings of the reader
+      operationId: setTagSmoothingSettings
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/TagSmoothingSettings'
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Invalid tag smoothing configuration
+        '500':
+          description: Unexpected error occured
+  /region:
+    get:
+      tags: 
+        - configuration
+      summary: Gets the configured region code of the reader
+      operationId: getRegion
+      responses:
+        '200':
+          description: Region code
+          content:
+            'text/plain':
+              schema:
+                type: string
+        '500':
+          description: Unexpected error occured
+    put:
+      tags: 
+        - configuration
+      summary: Sets the region of the reader
+      operationId: setRegion
+      requestBody:
+        content:
+          'text/plain':
+            schema:
+              type: string
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Invalid region or region was already set
+        '500':
+          description: Unexpected error occured
+  /region/supported:
+    get:
+      tags: 
+        - configuration
+      summary: Gets the supported regions of the reader
+      operationId: getSupportedRegions
+      responses:
+        '200':
+          description: Return object
+          content:
+            'application/json':
+              schema:
+                type: array
+                items:
+                  type: string
+        '500':
+          description: Unexpected error occured
+  /tags:
+    get:
+      tags: 
+        - operations
+      summary: Gets all rfid tags that are currently within the antenna field based on the configuration of the reader
+      description: This will perform an rfid inventory at the activated antennas based on the configured inventory seeting. The result is a list of captured rfid tags that matches the specified filter conditions and optionally one specific antenna if the antenna query parameter is given.
+      operationId: getTags
+      parameters:
+        - $ref: '#/components/parameters/antenna'
+      responses:
+        '200':
+          description: List of tag data
+          content:
+            'application/json':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TagData"
+                example:
+                  - tagDataId: 0
+                    epc: "300833B2DDD9014000000000"
+                    pc: 13312
+                    crc: 0
+                    xpc: 0
+                    antennaID: 1
+                    rssi: -49
+                    channel: 1
+                    resultList: []
+                  - tagDataId: 1
+                    epc: "340D964A3120000000000002"
+                    pc: 13312
+                    crc: 0
+                    xpc: 0
+                    antennaID: 1
+                    rssi: -49
+                    channel: 1
+                    resultList: []
+        '400':
+          description: Invalid Operation
+        '500':
+          description: Unexpected error occured
+  /tags/{tagID}:
+    put:
+      tags: 
+        - operations
+      summary: Executes the defined operations on the specified rfid tag and returns the results of the operations
+      description: This will first perform an rfid inventory at the activated antennas or to one specific antenna if antenna query parameter is given to recapture the specified tag, if the tag was found this will execute the defined operations on the tag
+      operationId: executeTag
+      parameters:
+        - $ref: '#/components/parameters/antenna'
+        - $ref: '#/components/parameters/tagID'
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              type: array
+              items:
+                oneOf:
+                  - $ref: '#/components/schemas/ReadOperation'
+                  - $ref: '#/components/schemas/WriteOperation'
+                  - $ref: '#/components/schemas/KillOperation'
+                  - $ref: '#/components/schemas/LockOperation'
+                  - $ref: '#/components/schemas/CustomOperation'
+              example:
+                  - operationId: "Write"
+                    kind: "WRITE"
+                    bank: 3
+                    offset: 0
+                    data: "1A2B3C4D"
+                  - operationId: "ReadAfterWrite"
+                    kind: "READ"
+                    bank: 3
+                    length: 2
+                    offset: 0
+      responses:
+        '200':
+          description: OK
+          content:
+            'application/json':
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TagData'
+                example:
+                    - tagDataId: 0
+                      epc: "300833B2DDD9014000000000"
+                      pc: 13312
+                      crc: 0
+                      xpc: 0
+                      antennaID: 1
+                      rssi: -49
+                      channel: 3
+                      resultList:
+                        - kind: "WRITE"
+                          wordsWritten: 2
+                          result: "SUCCESS"
+                          operationId: "Write"
+                        - kind: "READ"
+                          readData: "1A2B3C4D"
+                          result: "SUCCESS"
+                          operationId: "ReadAfterWrite"
+                  
+        '500':
+          description: Unexpected error occured

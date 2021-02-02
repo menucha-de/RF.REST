@@ -1,0 +1,28 @@
+Bundle-Name: Ha-VIS Net REST RF
+Bundle-SymbolicName: havis.net.rest.rf
+Bundle-Vendor: HARTING IT_SD
+Bundle-Version: 2.6.0
+Implementation-Version: 2.6
+Bundle-ManifestVersion: 2
+Bundle-Activator: havis.net.rest.rf.osgi.Activator
+Import-Package: 
+ com.fasterxml.jackson.core,
+ com.fasterxml.jackson.databind,
+ havis.device.rf,
+ havis.device.rf.capabilities,
+ havis.device.rf.configuration,
+ havis.device.rf.exception,
+ havis.device.rf.tag,
+ havis.device.rf.tag.operation,
+ havis.device.rf.tag.result,
+ havis.net.rest.shared,
+ havis.net.rest.shared.data,
+ javax.annotation.security,
+ javax.ws.rs,
+ javax.ws.rs.core,
+ javax.ws.rs.ext,
+ javax.xml.bind,
+ havis.util.core.common.license;resolution:=optional,
+ org.osgi.framework;resolution:=optional,
+ org.osgi.util.tracker;resolution:=optional
+

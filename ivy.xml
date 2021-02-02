@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ivy-module version="2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://ant.apache.org/ivy/schemas/ivy.xsd">
+
+	<info organisation="havis/net/rest" module="rf" default="true" />
+
+	<configurations>
+		<conf name="default" visibility="public" />
+	</configurations>
+
+	<dependencies>
+		<dependency org="havis/device/rf" name="api" rev="${havis.version}" conf="default->default,src" />
+		<dependency org="havis/net/rest" name="shared" rev="${havis.version}" conf="default" />
+		<dependency org="havis/util/core" name="core-common" rev="${havis.version}" conf="default" />
+		<dependency org="org/osgi" name="org.osgi.core" rev="${osgi.version}" conf="default" />
+		<dependency org="org/fusesource/restygwt" name="restygwt" rev="${restygwt.version}" conf="default" />
+		<dependency org="org/jboss/resteasy" name="resteasy-jackson2-provider" rev="${resteasy.version}" conf="default" />
+		<dependency org="org/jboss/resteasy" name="resteasy-multipart-provider" rev="${resteasy.version}" conf="default" />
+		<dependency org="org/jmockit" name="jmockit" rev="${jmockit.version}" />
+		<dependency org="org/jmockit" name="jmockit-coverage" rev="${jmockit.version}" />
+		<dependency org="junit" name="junit" rev="${junit.version}" conf="default" />
+	</dependencies>
+
+</ivy-module>
