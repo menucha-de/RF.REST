@@ -1,8 +1,8 @@
 Bundle-Name: Ha-VIS Net REST RF
 Bundle-SymbolicName: havis.net.rest.rf
 Bundle-Vendor: HARTING IT_SD
-Bundle-Version: 2.6.0
-Implementation-Version: 2.6
+Bundle-Version: 2.7.0
+Implementation-Version: 2.7
 Bundle-ManifestVersion: 2
 Bundle-Activator: havis.net.rest.rf.osgi.Activator
 Import-Package: 
