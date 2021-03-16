@@ -5,7 +5,7 @@ info:
   description: This is a REST based interface to interact with the RF-R3x0 RFID Hardware Interface via http using JSON.<br>
     It is designed as a low level reader interface in accordance with LLRP 1.1 (Low Level Reader Protocol) by GS1.
   contact: 
-    email: support@peraMIC.io
+    email: info@menucha.de
 servers:
   - url: https://{mica-host}/Apps/rest/rf
     description: MICA
